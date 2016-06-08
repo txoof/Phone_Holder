@@ -1,7 +1,7 @@
 //Phone Holder
 
 include <MCAD/boxes.scad>
-include <../../metric_fasteners/nuts_and_bolts.scad>
+include <../metric_fasteners/nuts_and_bolts.scad>
 
 /*[body dimensions]*/
 mainX = 23;
@@ -85,11 +85,14 @@ module spoke() {
 
 
 module assemble() {
-  // socket head thickness taken from the metric_fastener library
   tolerance = 0.3;
-  socketHeadThick = metric_fastener[boltDia][5];
+  // socket head thickness taken from the metric_fastener library
+  socketHeadThick = metric_fastener[boltDia][4];
+  
+
+
   // set the head diameter
-  socketHeadDia = metric_fastner[boltDia][4]+tolerance;
+  socketHeadDia = metric_fastener[boltDia][4]+tolerance;
   //localSpringDia = springDia*1.05;
   // choose the larger of the two diameters for the spring channel
   localSpringDia = springDia < socketHeadDia ? socketHeadDia : springDia;
@@ -104,7 +107,13 @@ module assemble() {
         bolt(metric_fastener[boltDia], threadType = "none", length = mainZ, v = true, tolerance = tolerance, center = true, list = true, head = "socketBlank");
       // add a space for the spring
       translate([i*(mainX/4), 0, -mainZ/2+springLen/2+socketHeadThick/2])
-        cylinder(r = localSpringDia/2, h = springLen+socketHeadThick, center = true, $fn = quality);
+        cylinder(r = localSpringDia/2, h = springLen+socketHeadThick+.001, center = true, $fn = quality);
+
+      // add a bolt/nut hole for mounting
+      translate([0, 0, 0])
+        rotate([-90, 30, 0])
+        //#nutHole(size = metric_fastener[4], h = mainY*1.1, tollerance = 0.4, center = true);
+        #bolt(size = metric_fastener[4], head = "socket", threadType = "none", tollerance = 0.4, length = mainY, center = true);
     }
       
   }
