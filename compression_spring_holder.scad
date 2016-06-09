@@ -56,13 +56,14 @@ module springChannel(cornerDia = 1.5) {
     //add the bolt holes 
     translate([0, -2, -mainZ/2+fingerZ*2])
       rotate([-90, 0, 0])
-      #bolt(size = metric_fastener[2], threadType = "none", length = mainY, 
-        quality = 36, tolerance = .2, head = "socketBlank");
+      bolt(size = metric_fastener[2], threadType = "none", length = mainY, 
+        quality = 36, tolerance = .5, head = "socketBlank");
   }
 }
 */
 
 module body() {
+  tolerance = 0.4;
   union() {
     roundedBox(mainDim, corner, sidesonly = 1, $fn = quality);
     translate([0, (fingerDim[1]-mainY)/2, -mainZ/2+fingerDim[2]/2])
@@ -85,19 +86,19 @@ module spoke() {
 
 
 module assemble() {
+
   tolerance = 0.3;
+  mountingBolt = 4;
   // socket head thickness taken from the metric_fastener library
-  socketHeadThick = metric_fastener[boltDia][4];
+  socketHeadThick = metric_fastener[boltDia][5];
   
-
-
   // set the head diameter
   socketHeadDia = metric_fastener[boltDia][4]+tolerance;
   //localSpringDia = springDia*1.05;
   // choose the larger of the two diameters for the spring channel
   localSpringDia = springDia < socketHeadDia ? socketHeadDia : springDia;
   difference() {
-    body();
+    %body();
 
     //add the spring channels with bolts
     for(i = [-1, 1]) {
@@ -110,10 +111,11 @@ module assemble() {
         cylinder(r = localSpringDia/2, h = springLen+socketHeadThick+.001, center = true, $fn = quality);
 
       // add a bolt/nut hole for mounting
-      translate([0, 0, 0])
-        rotate([-90, 30, 0])
+      translate([0, 0, (springLen+socketHeadThick)/2])
+        rotate([-90, 0, 0])
+        translate([0, 0, -metric_fastener[mountingBolt][5]-tolerance])
         //#nutHole(size = metric_fastener[4], h = mainY*1.1, tollerance = 0.4, center = true);
-        #bolt(size = metric_fastener[4], head = "socket", threadType = "none", tollerance = 0.4, length = mainY, center = true);
+        boltHole(size = metric_fastener[mountingBolt], tolerance = tolerance, length = mainY, center = true, support = true);
     }
       
   }
