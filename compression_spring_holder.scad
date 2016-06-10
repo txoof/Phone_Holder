@@ -84,41 +84,53 @@ module spoke() {
   }
 }
 
+module bulge(boltDia = 4, overhang = 35, h = 5, center = false) {
+  rad2 = boltDia;
+  rad1 = rad2 + h/tan(overhang);
+
+  cylinder(r1 = rad1, r2 = rad2, h = h, center = center);
+}
 
 module assemble() {
 
   tolerance = 0.3;
   mountingBolt = 4;
   // socket head thickness taken from the metric_fastener library
-  socketHeadThick = metric_fastener[boltDia][5];
+  socketHeadThick = metric_fastener[boltDia][5]+tolerance;
   
   // set the head diameter
   socketHeadDia = metric_fastener[boltDia][4]+tolerance;
   //localSpringDia = springDia*1.05;
   // choose the larger of the two diameters for the spring channel
   localSpringDia = springDia < socketHeadDia ? socketHeadDia : springDia;
-  difference() {
-    %body();
 
-    //add the spring channels with bolts
-    for(i = [-1, 1]) {
-      // add the bolt channels
-      translate([i*(mainX/4), 0, socketHeadThick])
-        rotate([180, 0, 0])
-        bolt(metric_fastener[boltDia], threadType = "none", length = mainZ, v = true, tolerance = tolerance, center = true, list = true, head = "socketBlank");
-      // add a space for the spring
-      translate([i*(mainX/4), 0, -mainZ/2+springLen/2+socketHeadThick/2])
-        cylinder(r = localSpringDia/2, h = springLen+socketHeadThick+.001, center = true, $fn = quality);
+  union() {
+    difference() {
+      %body();
 
-      // add a bolt/nut hole for mounting
-      translate([0, 0, (springLen+socketHeadThick)/2])
-        rotate([-90, 0, 0])
-        translate([0, 0, -metric_fastener[mountingBolt][5]-tolerance])
-        //#nutHole(size = metric_fastener[4], h = mainY*1.1, tollerance = 0.4, center = true);
-        boltHole(size = metric_fastener[mountingBolt], tolerance = tolerance, length = mainY, center = true, support = true);
-    }
-      
-  }
+      //add the spring channels with bolts
+      for(i = [-1, 1]) {
+        // add the bolt channels
+        translate([i*(mainX/4), 0, socketHeadThick])
+          rotate([180, 0, 0])
+          bolt(metric_fastener[boltDia], threadType = "none", length = mainZ, v = true, tolerance = tolerance, center = true, list = true, head = "socketBlank");
+        // add a space for the spring
+        translate([i*(mainX/4), 0, -mainZ/2+springLen/2+socketHeadThick/2])
+          cylinder(r = localSpringDia/2, h = springLen+socketHeadThick+.001, center = true, $fn = quality);
+
+        // add a bolt/nut hole for mounting
+        //translate([0, 0, (springLen+socketHeadThick)/2])
+          rotate([-90, 0, 0])
+          translate([0, 0, -metric_fastener[mountingBolt][5]-tolerance])
+          //#nutHole(size = metric_fastener[4], h = mainY*1.1, tollerance = 0.4, center = true);
+          bolt(size = metric_fastener[mountingBolt], tolerance = tolerance, length = mainY, center = true, support = true);
+      }
+        
+    } // end difference
+    translate([0, -mainY/2, 0])
+    rotate([90, 0, 0]) 
+      bulge(h = socketHeadThick);
+  } // end union
 }
 
 assemble();
